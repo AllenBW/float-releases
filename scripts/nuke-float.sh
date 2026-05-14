@@ -26,6 +26,14 @@ if [ "${1:-}" = "--force" ] || [ "${1:-}" = "-f" ]; then
   FORCE=1
 fi
 
+# Auto-force when run non-interactively (curl ... | bash). Otherwise `read`
+# consumes the script body from stdin and every confirm() returns false,
+# silently skipping every step — including removing the .app bundle.
+if [ ! -t 0 ] && [ "$FORCE" = "0" ]; then
+  echo "[nuke] No TTY detected (likely 'curl ... | bash'); running in --force mode."
+  FORCE=1
+fi
+
 confirm() {
   if [ "$FORCE" = "1" ]; then return 0; fi
   printf "  → %s [y/N] " "$1"
